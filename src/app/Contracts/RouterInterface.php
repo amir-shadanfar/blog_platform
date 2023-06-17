@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 interface RouterInterface
 {
     public function register(string $requestMethod, string $route, callable|array $action): self;
@@ -18,7 +20,7 @@ interface RouterInterface
 
     public function routes(): array;
 
-    public function resolve(string $requestUri, string $requestMethod);
+    public function resolve(ServerRequestInterface $request, MiddlewareDispatcherInterface $middlewareDispatcher);
 
-    public function only($key): self;
+    public function middleware($key): self;
 }

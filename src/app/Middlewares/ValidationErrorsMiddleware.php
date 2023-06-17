@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Middlewares;
 
+use App\Contracts\AuthInterface;
+use App\Contracts\SessionInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use App\Contracts\SessionInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Twig\Environment;
 
-class StartSessionMiddleware implements MiddlewareInterface
+class ValidationErrorsMiddleware implements MiddlewareInterface
 {
     /**
      * @param SessionInterface $session
+     * @param Environment $twig
      */
     public function __construct(private readonly SessionInterface $session)
     {
@@ -27,7 +30,9 @@ class StartSessionMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->session->start();
+        if ($errors = $this->session->getFlash('errors')) {
+            // $this->twig->addGlobal('errors', $errors);
+        }
 
         return $handler->handle($request);
     }
