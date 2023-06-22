@@ -12,10 +12,9 @@ class View
      * @param string $view
      * @param array $params
      */
-    public function __construct(
-        protected string $view,
-        protected array $params = []
-    ) {
+    public function __construct(protected string $view, protected array $params = [])
+    {
+        //
     }
 
     /**
