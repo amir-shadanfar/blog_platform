@@ -4,28 +4,39 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Exceptions\ViewNotFoundException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Twig\Environment;
 use Valitron\Validator;
+use App\View;
 
 class BlogController extends AbstractController
 {
     /**
-     * @param Environment $twig
+     *
      */
-    public function __construct(protected Environment $twig)
+    public function __construct()
     {
         //
     }
 
     /**
-     * @return string
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     * @throws ViewNotFoundException
      */
-    public function index(): string
+    public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        return $this->twig->render('blogs\index.twig', [
-            'blogs' => [],
-            'pages' => 1,
-        ]);
+        $bodyContent =  View::make('imprint')->render();
+
+        $response->getBody()->write($bodyContent);
+        return $response;
+//        $body = $this->twig->render('blogs\index.twig', [
+//            'blogs' => [],
+//            'pages' => 1,
+//        ]);
     }
 
     /**
