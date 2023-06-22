@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\App;
+use App\Contracts\ResponseEmitterInterface;
 use Dotenv\Dotenv;
 
 require __DIR__ . '/config/path_constants.php';
@@ -14,5 +15,6 @@ $dotenv->load();
 
 // initial container
 $container = require CONFIG_PATH . '/container.php';
+$responseEmitter = $container->get(ResponseEmitterInterface::class);
 
-return new App($container);
+return new App($container, $responseEmitter);

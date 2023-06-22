@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App;
 
 use App\Contracts\MiddlewareDispatcherInterface;
+use App\Contracts\ResponseEmitterInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -15,7 +16,7 @@ use App\Exceptions\RouteNotFoundException;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class App implements RequestHandlerInterface
+class App
 {
     /**
      * @var DB
@@ -24,6 +25,7 @@ class App implements RequestHandlerInterface
 
     /**
      * @param ContainerInterface $container
+     * @param ResponseEmitterInterface $responseEmitter
      * @param RouterInterface|null $router
      * @param ServerRequestInterface|null $request
      * @param MiddlewareDispatcherInterface|null $middlewareDispatcher
@@ -32,6 +34,7 @@ class App implements RequestHandlerInterface
      */
     public function __construct(
         private ContainerInterface $container,
+        private ResponseEmitterInterface $responseEmitter,
         private ?RouterInterface $router = null,
         private ?ServerRequestInterface $request = null,
         private ?MiddlewareDispatcherInterface $middlewareDispatcher = null
@@ -51,30 +54,10 @@ class App implements RequestHandlerInterface
     /**
      * @return void
      */
-    public function run(): void
+    public function run()
     {
-        try {
-
-            // $response = $this->handle($this->request);
-            // @todo refactor with responseFactory [view|json]
-
-            // resolve route & handle middleware
-            echo $this->router->resolve($this->request, $this->middlewareDispatcher);
-        } catch (RouteNotFoundException) {
-            http_response_code(404);
-
-            echo View::make('errors/404');
-        }
-    }
-
-    /**
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     */
-    public function handle(ServerRequestInterface $request): ResponseInterface
-    {
-        $response =  $this->middlewareDispatcher->handle($request);
-        return $response;
+        $response = $this->middlewareDispatcher->handle($this->request);
+        $this->responseEmitter->emit($response);
     }
 
     /**
