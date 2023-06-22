@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\View;
 use App\Contracts\AuthInterface;
 use App\Exceptions\ValidationException;
-use App\View;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use Valitron\Validator;
 
 class AuthController extends AbstractController
@@ -16,19 +21,24 @@ class AuthController extends AbstractController
      * @param AuthInterface $auth
      * @param Environment $twig
      */
-    public function __construct(
-        private readonly AuthInterface $auth,
-        private readonly Environment $twig
-    ) {
+    public function __construct(private readonly AuthInterface $auth, private readonly Environment $twig)
+    {
         //
     }
 
     /**
-     * @return string
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function loginPage(): string
+    public function loginPage(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        return $this->twig->render('auth/login.twig');
+        $bodyContent = $this->twig->render('auth/login.twig');
+        $response->getBody()->write($bodyContent);
+        return $response;
     }
 
     /**
@@ -53,16 +63,22 @@ class AuthController extends AbstractController
             header('Location: /blogs');
             exit;
         } catch (\Throwable $exception) {
-
         }
     }
 
     /**
-     * @return string
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function registerPage(): string
+    public function registerPage(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        return $this->twig->render('auth/register.twig');
+        $bodyContent = $this->twig->render('auth/register.twig');
+        $response->getBody()->write($bodyContent);
+        return $response;
     }
 
     /**
@@ -85,7 +101,6 @@ class AuthController extends AbstractController
             header('Location: /blogs');
             exit;
         } catch (\Throwable $exception) {
-
         }
     }
 

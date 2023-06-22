@@ -14,6 +14,7 @@ use App\Contracts\SessionInterface;
 use App\Contracts\UserInterface;
 use App\Contracts\UserRepositoryInterface;
 use App\DB;
+use App\Enums\AppEnvironment;
 use App\MiddlewareDispatcher;
 use App\MiddlewareHandler;
 use App\Migrations\Migration;
@@ -29,6 +30,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
 
 $container = new Container();
@@ -100,13 +103,13 @@ $container->bind(MiddlewareDispatcherInterface::class, function (ContainerInterf
 });
 
 // Twig
-//$container->bind(Environment::class, function (ContainerInterface $container) {
-//    $config = $container->get(Config::class);
-//
-//    $twig =  new Environment(new FilesystemLoader(VIEW_PATH), [
-//        'cache' => STORAGE_PATH . '/cache/templates',
-//        'auto_reload' => $config->environment == AppEnvironment::Development->value,
-//    ]);
-//});
+$container->bind(Environment::class, function (ContainerInterface $container) {
+    $config = $container->get(Config::class);
+
+    return new Environment(new FilesystemLoader(VIEW_PATH), [
+        'cache' => STORAGE_PATH . '/cache/templates',
+        'auto_reload' => $config->environment == AppEnvironment::Development->value,
+    ]);
+});
 
 return $container;

@@ -3,4 +3,4 @@ docker/storage
 vendor
 .phpunit.result.cache
 .env
-storage/cache
+storage

@@ -8,15 +8,18 @@ use App\Exceptions\ViewNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use Valitron\Validator;
 use App\View;
 
 class BlogController extends AbstractController
 {
     /**
-     *
+     * @param Environment $twig
      */
-    public function __construct()
+    public function __construct(private readonly Environment $twig)
     {
         //
     }
@@ -25,24 +28,30 @@ class BlogController extends AbstractController
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @return ResponseInterface
-     * @throws ViewNotFoundException
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $bodyContent =  View::make('imprint')->render();
+        $bodyContent = $body = $this->twig->render('blogs\index.twig', [
+            'blogs' => [],
+            'pages' => 1,
+        ]);
 
         $response->getBody()->write($bodyContent);
         return $response;
-//        $body = $this->twig->render('blogs\index.twig', [
-//            'blogs' => [],
-//            'pages' => 1,
-//        ]);
     }
 
     /**
-     * @return string
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function show(): string
+    public function show(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         if (!isset($_GET['id'])) {
             // redirect to show method
@@ -50,21 +59,33 @@ class BlogController extends AbstractController
             exit;
         }
         $id = (int)$_GET['id'];
-        return $this->twig->render('blogs/detail.twig', ['blog' => $this->blogRepo->find($id)]);
+
+        $bodyContent = $this->twig->render('blogs/detail.twig', ['blog' => $this->blogRepo->find($id)]);
+        $response->getBody()->write($bodyContent);
+        return $response;
     }
 
     /**
-     * @return string
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
-    public function create(): string
+    public function create(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        return $this->twig->render('blogs/form.twig');
+        $bodyContent = $this->twig->render('blogs/form.twig');
+        $response->getBody()->write($bodyContent);
+        return $response;
     }
 
     /**
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
      * @return void
      */
-    public function store()
+    public function store(ServerRequestInterface $request, ResponseInterface $response)
     {
         $input = $_POST;
         try {
