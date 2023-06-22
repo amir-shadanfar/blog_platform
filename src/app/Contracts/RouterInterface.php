@@ -20,7 +20,5 @@ interface RouterInterface
 
     public function routes(): array;
 
-    public function resolve(ServerRequestInterface $request, MiddlewareDispatcherInterface $middlewareDispatcher);
-
     public function middleware($key): self;
 }

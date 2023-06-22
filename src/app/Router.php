@@ -6,10 +6,12 @@ namespace App;
 
 use App\Contracts\RouterInterface;
 use App\Exceptions\RouteNotFoundException;
-use App\Middlewares\Middleware;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionException;
 
-class Router implements RouterInterface
+class Router implements RouterInterface, RequestHandlerInterface
 {
     /**
      * @var array
@@ -48,7 +50,7 @@ class Router implements RouterInterface
      * @param $key
      * @return $this
      */
-    public function only($key): self
+    public function middleware($key): self
     {
         $this->routes[array_key_last($this->routes)]['middleware'] = $key;
 
@@ -104,25 +106,22 @@ class Router implements RouterInterface
     }
 
     /**
-     * @param string $requestUri
-     * @param string $requestMethod
-     * @return mixed
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
      * @throws Exceptions\ContainerException
-     * @throws Exceptions\MiddlewareException
      * @throws ReflectionException
      * @throws RouteNotFoundException
      */
-    public function resolve(string $requestUri, string $requestMethod)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // trim querystring from uri
-        $requestRoute = strtok($requestUri, '?');
+        $response = $this->container->get(ResponseInterface::class);
+
+        $requestUri = $request->getUri();
+        $requestMethod = strtolower($request->getMethod());
 
         $action = null;
         foreach ($this->routes as $route) {
-            if ($route['route'] == $requestRoute && $route['method'] == strtolower($requestMethod)) {
-                // check the route has any middleware
-                Middleware::resolve($route['middleware'], $this->container);
-                // get action
+            if ($route['route'] == $requestUri->getPath() && $route['method'] == $requestMethod) {
                 $action = $route['action'];
             }
         }
@@ -140,7 +139,7 @@ class Router implements RouterInterface
             if (class_exists($class)) {
                 $class = $this->container->get($class);
                 if (method_exists($class, $method)) {
-                    return call_user_func([$class, $method], []);
+                    return call_user_func([$class, $method], $request, $response);
                 }
             }
         }
